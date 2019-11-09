@@ -26,9 +26,9 @@
 #include <iostream>
 
 
-vec3 ray_color(const ray& r, hittable *world, int depth) {
+vec3 ray_color(const ray& r, hittable &world, int depth) {
     hit_record rec;
-    if (depth <= 0 || !world->hit(r, 0.001, infinity, rec))
+    if (depth <= 0 || !world.hit(r, 0.001, infinity, rec))
         return vec3(0,0,0);
 
     ray scattered;
@@ -40,32 +40,31 @@ vec3 ray_color(const ray& r, hittable *world, int depth) {
     return emitted + attenuation * ray_color(scattered, world, depth-1);
 }
 
-hittable *earth() {
+void add_earth(scene &world) {
     int nx, ny, nn;
     //unsigned char *tex_data = stbi_load("tiled.jpg", &nx, &ny, &nn, 0);
     unsigned char *tex_data = stbi_load("earthmap.jpg", &nx, &ny, &nn, 0);
     material *mat = new lambertian(new image_texture(tex_data, nx, ny));
-    return new sphere(vec3(0,0, 0), 2, mat);
+    world.add(new sphere(vec3(0,0, 0), 2), mat);
 }
 
-hittable *two_spheres() {
+void two_spheres(scene &world) {
     texture *checker = new checker_texture(
         new constant_texture(vec3(0.2,0.3, 0.1)), new constant_texture(vec3(0.9, 0.9, 0.9)));
-    int n = 50;
-    hittable **list = new hittable*[n+1];
-    list[0] = new sphere(vec3(0,-10, 0), 10, new lambertian(checker));
-    list[1] = new sphere(vec3(0, 10, 0), 10, new lambertian(checker));
 
-    return new scene(list,2);
+    world.add(new sphere(vec3(0,-10, 0), 10), new lambertian(checker));
+    world.add(new sphere(vec3(0, 10, 0), 10), new lambertian(checker));
 }
 
-hittable *final() {
+hittable *final(scene &world) {
     int nb = 20;
     hittable **list = new hittable*[30];
     hittable **boxlist = new hittable*[10000];
     hittable **boxlist2 = new hittable*[10000];
+
     material *white = new lambertian(new constant_texture(vec3(0.73, 0.73, 0.73)));
     material *ground = new lambertian(new constant_texture(vec3(0.48, 0.83, 0.53)));
+
     int b = 0;
     for (int i = 0; i < nb; i++) {
         for (int j = 0; j < nb; j++) {
@@ -79,6 +78,7 @@ hittable *final() {
             boxlist[b++] = new box(vec3(x0,y0,z0), vec3(x1,y1,z1), ground);
         }
     }
+
     int l = 0;
     list[l++] = new bvh_node(boxlist, b, 0, 1);
     material *light = new diffuse_light(new constant_texture(vec3(7, 7, 7)));
@@ -101,17 +101,20 @@ hittable *final() {
     list[l++] = new sphere(vec3(400,200, 400), 100, emat);
     texture *pertext = new noise_texture(0.1);
     list[l++] = new sphere(vec3(220,280, 300), 80, new lambertian(pertext));
+
     int ns = 1000;
     for (int j = 0; j < ns; j++) {
         boxlist2[j] = new sphere(
             vec3(165*random_double(), 165*random_double(), 165*random_double()), 10, white);
     }
+
     list[l++] = new translate(
         new rotate_y(new bvh_node(boxlist2, ns, 0.0, 1.0), 15), vec3(-100,270,395));
+
     return new scene(list,l);
 }
 
-hittable *cornell_final() {
+hittable *cornell_final(scene &world) {
     hittable **list = new hittable*[30];
     hittable **boxlist = new hittable*[10000];
     texture *pertext = new noise_texture(0.1);
@@ -153,7 +156,7 @@ hittable *cornell_final() {
     return new scene(list,i);
 }
 
-hittable *cornell_balls() {
+hittable *cornell_balls(scene &world) {
     hittable **list = new hittable*[9];
     int i = 0;
     material *red = new lambertian(new constant_texture(vec3(0.65, 0.05, 0.05)));
@@ -176,7 +179,7 @@ hittable *cornell_balls() {
     return new scene(list,i);
 }
 
-hittable *cornell_smoke() {
+hittable *cornell_smoke(scene &world) {
     hittable **list = new hittable*[8];
     int i = 0;
     material *red = new lambertian(new constant_texture(vec3(0.65, 0.05, 0.05)));
@@ -202,7 +205,7 @@ hittable *cornell_smoke() {
     return new scene(list,i);
 }
 
-hittable *cornell_box() {
+hittable *cornell_box(scene &world) {
     hittable **list = new hittable*[8];
     int i = 0;
     material *red = new lambertian(new constant_texture(vec3(0.65, 0.05, 0.05)));
@@ -226,7 +229,7 @@ hittable *cornell_box() {
     return new scene(list,i);
 }
 
-hittable *two_perlin_spheres() {
+hittable *two_perlin_spheres(scene &world) {
     texture *pertext = new noise_texture(4);
     hittable **list = new hittable*[2];
     list[0] = new sphere(vec3(0,-1000, 0), 1000, new lambertian(pertext));
@@ -234,7 +237,7 @@ hittable *two_perlin_spheres() {
     return new scene(list,2);
 }
 
-hittable *simple_light() {
+hittable *simple_light(scene &world) {
     texture *pertext = new noise_texture(4);
     hittable **list = new hittable*[4];
     list[0] = new sphere(vec3(0,-1000, 0), 1000, new lambertian(pertext));
@@ -244,7 +247,7 @@ hittable *simple_light() {
     return new scene(list,4);
 }
 
-hittable *random_scene() {
+hittable *random_scene(scene &world) {
     int n = 50000;
     hittable **list = new hittable*[n+1];
     texture *checker = new checker_texture(
@@ -309,16 +312,18 @@ int main() {
     std::cout << "P3\n" << nx << ' ' << ny << "\n255\n";
 
     auto R = cos(pi/4);
-    //hittable *world = random_scene();
-    //hittable *world = two_spheres();
-    //hittable *world = two_perlin_spheres();
-    //hittable *world = earth();
-    //hittable *world = simple_light();
-    hittable *world = cornell_box();
-    //hittable *world = cornell_balls();
-    //hittable *world = cornell_smoke();
-    //hittable *world = cornell_final();
-    //hittable *world = final();
+
+    scene world;
+    // random_scene(world);
+    // two_spheres(world);
+    // two_perlin_spheres(world);
+    // add_earth(world);
+    // simple_light(world);
+    cornell_box(world);
+    // cornell_balls(world);
+    // cornell_smoke(world);
+    // cornell_final(world);
+    // final(world);
 
     vec3 lookfrom(278, 278, -800);
     //vec3 lookfrom(478, 278, -600);

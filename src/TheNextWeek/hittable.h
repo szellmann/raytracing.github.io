@@ -31,7 +31,7 @@ struct hit_record {
     double v;
     vec3 p;
     vec3 normal;
-    material *mat_ptr;
+    material *mat;
 };
 
 class hittable {
