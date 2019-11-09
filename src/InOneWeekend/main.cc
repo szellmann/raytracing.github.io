@@ -18,14 +18,15 @@
 #include <iostream>
 
 
-vec3 ray_color(const ray& r, hittable *world, int depth) {
+vec3 ray_color(const ray& r, hittable &world, int depth) {
     hit_record rec;
-    if (world->hit(r, 0.001, infinity, rec)) {
+
+    if (world.hit(r, 0.001, infinity, rec)) {
         if (depth <= 0)
             return vec3(0,0,0);
         ray scattered;
         vec3 attenuation;
-        if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
+        if (rec.mat->scatter(r, rec, attenuation, scattered))
             return attenuation * ray_color(scattered, world, depth-1);
         return vec3(0,0,0);
     }
@@ -36,45 +37,41 @@ vec3 ray_color(const ray& r, hittable *world, int depth) {
 }
 
 
-hittable *random_scene() {
-    int n = 500;
-    hittable **list = new hittable*[n+1];
-    list[0] = new sphere(vec3(0,-1000,0), 1000, new lambertian(vec3(0.5, 0.5, 0.5)));
+void random_scene(scene &world) {
+    world.add(new sphere(vec3(0,-1000,0), 1000), new lambertian(vec3(0.5, 0.5, 0.5)));
+
     int i = 1;
     for (int a = -11; a < 11; a++) {
         for (int b = -11; b < 11; b++) {
             auto choose_mat = random_double();
             vec3 center(a+0.9*random_double(),0.2,b+0.9*random_double());
+
             if ((center-vec3(4,0.2,0)).length() > 0.9) {
+                material *mat;
+
                 if (choose_mat < 0.8) {  // diffuse
-                    list[i++] = new sphere(
-                        center, 0.2,
-                        new lambertian(vec3(random_double()*random_double(),
-                                            random_double()*random_double(),
-                                            random_double()*random_double()))
-                    );
+                    mat = new lambertian(vec3(random_double()*random_double(),
+                                              random_double()*random_double(),
+                                              random_double()*random_double()));
                 }
                 else if (choose_mat < 0.95) { // metal
-                    list[i++] = new sphere(
-                        center, 0.2,
-                        new metal(vec3(0.5*(1 + random_double()),
-                                       0.5*(1 + random_double()),
-                                       0.5*(1 + random_double())),
-                                  0.5*random_double())
-                    );
+                    mat = new metal(vec3(0.5*(1 + random_double()),
+                                         0.5*(1 + random_double()),
+                                         0.5*(1 + random_double())),
+                                    0.5*random_double());
                 }
                 else {  // glass
-                    list[i++] = new sphere(center, 0.2, new dielectric(1.5));
+                    mat = new dielectric(1.5);
                 }
+
+                world.add (new sphere(center, 0.2), mat);
             }
         }
     }
 
-    list[i++] = new sphere(vec3(0, 1, 0), 1.0, new dielectric(1.5));
-    list[i++] = new sphere(vec3(-4, 1, 0), 1.0, new lambertian(vec3(0.4, 0.2, 0.1)));
-    list[i++] = new sphere(vec3(4, 1, 0), 1.0, new metal(vec3(0.7, 0.6, 0.5), 0.0));
-
-    return new scene(list,i);
+    world.add(new sphere(vec3( 0, 1, 0), 1.0), new dielectric(1.5));
+    world.add(new sphere(vec3(-4, 1, 0), 1.0), new lambertian(vec3(0.4, 0.2, 0.1)));
+    world.add(new sphere(vec3( 4, 1, 0), 1.0), new metal(vec3(0.7, 0.6, 0.5), 0.0));
 }
 
 
@@ -86,7 +83,8 @@ int main() {
 
     std::cout << "P3\n" << nx << ' ' << ny << "\n255\n";
 
-    hittable *world = random_scene();
+    scene world;
+    random_scene(world);
 
     vec3 lookfrom(13,2,3);
     vec3 lookat(0,0,0);
