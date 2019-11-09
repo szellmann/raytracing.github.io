@@ -16,9 +16,9 @@
 #include "bvh.h"
 #include "camera.h"
 #include "constant_medium.h"
-#include "hittable_list.h"
 #include "material.h"
 #include "moving_sphere.h"
+#include "scene.h"
 #include "sphere.h"
 #include "surface_texture.h"
 #include "texture.h"
@@ -56,7 +56,7 @@ hittable *two_spheres() {
     list[0] = new sphere(vec3(0,-10, 0), 10, new lambertian(checker));
     list[1] = new sphere(vec3(0, 10, 0), 10, new lambertian(checker));
 
-    return new hittable_list(list,2);
+    return new scene(list,2);
 }
 
 hittable *final() {
@@ -108,7 +108,7 @@ hittable *final() {
     }
     list[l++] = new translate(
         new rotate_y(new bvh_node(boxlist2, ns, 0.0, 1.0), 15), vec3(-100,270,395));
-    return new hittable_list(list,l);
+    return new scene(list,l);
 }
 
 hittable *cornell_final() {
@@ -150,7 +150,7 @@ hittable *cornell_final() {
     );
     list[i++] = boundary2;
     list[i++] = new constant_medium(boundary2, 0.2, new constant_texture(vec3(0.9, 0.9, 0.9)));
-    return new hittable_list(list,i);
+    return new scene(list,i);
 }
 
 hittable *cornell_balls() {
@@ -173,7 +173,7 @@ hittable *cornell_balls() {
         new rotate_y(new box(vec3(0, 0, 0), vec3(165, 330, 165), white), 15),
         vec3(265,0,295)
     );
-    return new hittable_list(list,i);
+    return new scene(list,i);
 }
 
 hittable *cornell_smoke() {
@@ -199,7 +199,7 @@ hittable *cornell_smoke() {
     );
     list[i++] = new constant_medium(b1, 0.01, new constant_texture(vec3(1.0, 1.0, 1.0)));
     list[i++] = new constant_medium(b2, 0.01, new constant_texture(vec3(0.0, 0.0, 0.0)));
-    return new hittable_list(list,i);
+    return new scene(list,i);
 }
 
 hittable *cornell_box() {
@@ -223,7 +223,7 @@ hittable *cornell_box() {
         new rotate_y(new box(vec3(0, 0, 0), vec3(165, 330, 165), white),  15),
         vec3(265,0,295)
     );
-    return new hittable_list(list,i);
+    return new scene(list,i);
 }
 
 hittable *two_perlin_spheres() {
@@ -231,7 +231,7 @@ hittable *two_perlin_spheres() {
     hittable **list = new hittable*[2];
     list[0] = new sphere(vec3(0,-1000, 0), 1000, new lambertian(pertext));
     list[1] = new sphere(vec3(0, 2, 0), 2, new lambertian(pertext));
-    return new hittable_list(list,2);
+    return new scene(list,2);
 }
 
 hittable *simple_light() {
@@ -241,7 +241,7 @@ hittable *simple_light() {
     list[1] = new sphere(vec3(0,2,0), 2, new lambertian(pertext));
     list[2] = new sphere(vec3(0,7,0), 2, new diffuse_light(new constant_texture(vec3(4,4,4))));
     list[3] = new xy_rect(3, 5, 1, 3, -2, new diffuse_light(new constant_texture(vec3(4,4,4))));
-    return new hittable_list(list,4);
+    return new scene(list,4);
 }
 
 hittable *random_scene() {
@@ -296,7 +296,7 @@ hittable *random_scene() {
         vec3(-4, 1, 0), 1.0, new lambertian(new constant_texture(vec3(0.4, 0.2, 0.1))));
     list[i++] = new sphere(vec3(4, 1, 0), 1.0, new metal(vec3(0.7, 0.6, 0.5), 0.0));
 
-    //return new hittable_list(list,i);
+    //return new scene(list,i);
     return new bvh_node(list, i, 0.0, 1.0);
 }
 

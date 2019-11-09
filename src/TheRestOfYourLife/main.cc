@@ -15,10 +15,10 @@
 #include "box.h"
 #include "bvh.h"
 #include "camera.h"
-#include "hittable_list.h"
 #include "material.h"
 #include "moving_sphere.h"
 #include "pdf.h"
+#include "scene.h"
 #include "sphere.h"
 #include "surface_texture.h"
 #include "texture.h"
@@ -51,7 +51,7 @@ vec3 ray_color(const ray& r, hittable *world, hittable *light_shape, int depth) 
                             / pdf_val;
 }
 
-void cornell_box(hittable **scene, camera **cam, double aspect) {
+void cornell_box(hittable **world, camera **cam, double aspect) {
     material *red = new lambertian(new constant_texture(vec3(0.65, 0.05, 0.05)));
     material *white = new lambertian(new constant_texture(vec3(0.73, 0.73, 0.73)));
     material *green = new lambertian(new constant_texture(vec3(0.12, 0.45, 0.15)));
@@ -69,7 +69,7 @@ void cornell_box(hittable **scene, camera **cam, double aspect) {
     list[i++] = new sphere(vec3(190, 90, 190),90 , glass);
     list[i++] = new translate(new rotate_y(
                     new box(vec3(0, 0, 0), vec3(165, 330, 165), white),  15), vec3(265,0,295));
-    *scene = new hittable_list(list,i);
+    *world = new scene(list,i);
 
     vec3 lookfrom(278, 278, -800);
     vec3 lookat(278, 278, 0);
@@ -97,7 +97,7 @@ int main() {
     hittable *a[2];
     a[0] = light_shape;
     a[1] = glass_sphere;
-    hittable_list hlist(a,2);
+    scene hlist(a,2);
 
     for (int j = ny-1; j >= 0; j--) {
         for (int i = 0; i < nx; i++) {

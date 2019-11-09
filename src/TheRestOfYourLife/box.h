@@ -13,7 +13,7 @@
 
 #include "common/rtweekend.h"
 #include "aarect.h"
-#include "hittable_list.h"
+#include "scene.h"
 
 
 class box: public hittable  {
@@ -42,7 +42,7 @@ box::box(const vec3& p0, const vec3& p1, material *ptr) {
     list[3] = new flip_normals(new xz_rect(p0.x(), p1.x(), p0.z(), p1.z(), p0.y(), ptr));
     list[4] = new yz_rect(p0.y(), p1.y(), p0.z(), p1.z(), p1.x(), ptr);
     list[5] = new flip_normals(new yz_rect(p0.y(), p1.y(), p0.z(), p1.z(), p0.x(), ptr));
-    list_ptr = new hittable_list(list,6);
+    list_ptr = new scene(list,6);
 }
 
 bool box::hit(const ray& r, double t0, double t1, hit_record& rec) const {

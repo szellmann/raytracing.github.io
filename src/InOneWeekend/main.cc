@@ -11,8 +11,8 @@
 
 #include "common/rtweekend.h"
 #include "camera.h"
-#include "hittable_list.h"
 #include "material.h"
+#include "scene.h"
 #include "sphere.h"
 
 #include <iostream>
@@ -74,7 +74,7 @@ hittable *random_scene() {
     list[i++] = new sphere(vec3(-4, 1, 0), 1.0, new lambertian(vec3(0.4, 0.2, 0.1)));
     list[i++] = new sphere(vec3(4, 1, 0), 1.0, new metal(vec3(0.7, 0.6, 0.5), 0.0));
 
-    return new hittable_list(list,i);
+    return new scene(list,i);
 }
 
 
