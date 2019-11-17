@@ -81,7 +81,7 @@ hittable *random_scene() {
 int main() {
     int nx = 1200;
     int ny = 800;
-    int num_samples = 10;
+    int num_samples = 100;
     int max_depth = 50;
 
     std::cout << "P3\n" << nx << ' ' << ny << "\n255\n";
